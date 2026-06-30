@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Logs
+logs/
+
+# Local backups
+Backup/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Installer Releases
+*.exe
+
+# Runtime files
+replacements.json
+_internal/replacements.json
+
