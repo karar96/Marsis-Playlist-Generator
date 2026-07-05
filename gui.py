@@ -1,4 +1,6 @@
 import os
+import tkinter as tk
+import webbrowser
 import re
 import sys
 import json
@@ -8,6 +10,9 @@ import customtkinter as ctk
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from generate import generate_playlists
+from updates.update_checker import check_for_updates
+from dialogs.update_dialog import UpdateDialog
+from dialogs.about_dialog import AboutDialog
 
 
 
@@ -20,15 +25,18 @@ from tkinter import (
     StringVar
 )
 
-# ====================================
-# App Info
-# ====================================
+from config.version import (
+    APP_NAME,
+    APP_VERSION,
+    APP_VERSION_NAME,
+    APP_DEVELOPER
+)
 
-APP_NAME = "Marsis Playlist Generator"
-
-APP_VERSION = "1.2 Stable"
-
-APP_DEVELOPER = "Karrar Hassan"
+from config.constants import (
+    APP_DIR,
+    CONFIGS_DIR,
+    CHANNELS_ROOT
+)
 
 # ====================================
 # Smart Series Scanner
@@ -351,11 +359,144 @@ ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
 
-app.title("Marsis Playlist Generator")
+app.title(APP_NAME)
 
 app.state("zoomed")
 
 app.resizable(True, True)
+
+
+# ====================================
+# Check For Updates
+# ====================================
+
+def menu_check_updates():
+
+    result = check_for_updates(APP_VERSION)
+
+    # إذا صار خطأ بالاتصال أو بالـ API
+    if len(result) < 5:
+
+        error_message = (
+            result[1]
+            if len(result) > 1
+            else "Unable to check for updates."
+        )
+
+        messagebox.showerror(
+            "Update",
+            error_message
+        )
+
+        return
+
+    (
+        is_latest,
+        latest_tag,
+        latest_name,
+        release_notes,
+        download_url,
+        published_date,
+        download_size
+    ) = result
+
+    if is_latest:
+
+        messagebox.showinfo(
+            "Updates",
+            f"You are using the latest version.\n\n"
+            f"{latest_name}"
+        )
+
+        return
+
+    UpdateDialog(
+        app,
+        APP_VERSION_NAME,
+        latest_name,
+        release_notes,
+        download_url,
+        published_date,
+        download_size
+    )
+
+# ====================================
+# About
+# ====================================
+
+def menu_about():
+
+    AboutDialog(
+
+        app,
+
+        check_updates_callback=menu_check_updates
+
+    )
+
+# ====================================
+# Menu Bar
+# ====================================
+
+menu_bar = tk.Menu(app)
+
+app.config(menu=menu_bar)
+
+file_menu = tk.Menu(
+    menu_bar,
+    tearoff=0
+)
+
+tools_menu = tk.Menu(
+    menu_bar,
+    tearoff=0
+)
+
+help_menu = tk.Menu(
+    menu_bar,
+    tearoff=0
+)
+
+menu_bar.add_cascade(
+    label="File",
+    menu=file_menu
+)
+
+menu_bar.add_cascade(
+    label="Tools",
+    menu=tools_menu
+)
+
+menu_bar.add_cascade(
+    label="Help",
+    menu=help_menu
+)
+
+# ====================================
+# Help Menu
+# ====================================
+
+help_menu.add_command(
+    label="Check for Updates...",
+    command=menu_check_updates
+)
+
+help_menu.add_command(
+    label="About",
+    command=menu_about
+)
+
+help_menu.add_separator()
+
+help_menu.add_command(
+    label="GitHub Repository",
+    command=lambda: webbrowser.open(
+        "https://github.com/karar96/Marsis-Playlist-Generator"
+    )
+)
+
+help_menu.add_separator()
+
 
 # ====================================
 # المتغيرات
@@ -2303,7 +2444,7 @@ def open_schedules():
 
 header = ctk.CTkLabel(
     app,
-    text="Marsis Playlist Generator",
+    text=APP_NAME,
     font=("Arial", 30, "bold")
 )
 
@@ -2883,6 +3024,7 @@ def show_about():
         pady=10
     )
 
+
 # ====================================
 # اختيار القناة
 # ====================================
@@ -2947,18 +3089,6 @@ settings_button.pack(
 )
 
 
-about_button = ctk.CTkButton(
-    channel_row,
-    text="ℹ",
-    width=45,
-    height=40,
-    command=show_about
-)
-
-about_button.pack(
-    side="left",
-    padx=(5, 0)
-)
 
 
 ctk.CTkButton(
